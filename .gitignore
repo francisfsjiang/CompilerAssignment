@@ -1,5 +1,7 @@
 .idea/
 
+test_code.ce
+
 *.py[cod]
 
 # C extensions
@@ -36,3 +38,4 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
