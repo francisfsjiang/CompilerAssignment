@@ -5,9 +5,12 @@ from error import *
 
 
 class Token:
-    def __init__(self, token_type=None, lexeme='', value=None, func=None):
+    def __init__(self, token_type=None, lexeme=None, value=0., func=None):
         self.token_type = token_type
-        self.lexeme = lexeme
+        if lexeme:
+            self.lexeme = lexeme
+        else:
+            self.lexeme = token_type
         self.value = value
         self.func = func
 
@@ -16,10 +19,10 @@ class Token:
 
 
 TOKEN_TAB = {
-    'PI': ['CONST_ID', 'PI', math.pi, None],
-    'E': ['CONST_ID', 'E', math.e, None],
-    'CONST_ID': ['CONST_ID', 'CONST_ID', 0, None],
-    'T': ['T', 'T', 0, None],
+    'PI': ['CONST_ID', 'PI', math.pi],
+    'E': ['CONST_ID', 'E', math.e],
+    'CONST_ID': ['CONST_ID', 'CONST_ID'],
+    'T': ['T', 'T'],
     #func
     'SIN': ['FUNC', 'SIN', 0, math.sin],
     'COS': ['FUNC', 'COS', 0, math.cos],
@@ -28,30 +31,30 @@ TOKEN_TAB = {
     'EXP': ['FUNC', 'EXP', 0, math.exp],
     'SQRT': ['FUNC', 'EXP', 0, math.sqrt],
     #key word
-    'ORIGIN': ['ORIGIN', 'ORIGIN'],
-    'SCALE': ['SCALE', 'SCALE', 0, None],
-    'ROT': ['ROT', 'ROT', 0, None],
-    'IS': ['IS', 'IS', 0, None],
-    'FOR': ['FOR', 'FOR', 0, None],
-    'FROM': ['FROM', 'FROM', 0, None],
-    'TO': ['TO', 'TO', 0, None],
-    'STEP': ['STEP', 'STEP', 0, None],
-    'DRAW': ['DRAW', 'DRAW', 0, None],
+    'ORIGIN': ['ORIGIN'],
+    'SCALE': ['SCALE'],
+    'ROT': ['ROT'],
+    'IS': ['IS'],
+    'FOR': ['FOR'],
+    'FROM': ['FROM'],
+    'TO': ['TO'],
+    'STEP': ['STEP'],
+    'DRAW': ['DRAW'],
     #symbol
-    ';': ['SEMICO', 'SEMICO', 0, None],
-    '(': ['L_BRACKET', 'L_BRACKET', 0, None],
-    ')': ['R_BRACKET', 'R_BRACKET', 0, None],
-    ',': ['COMMA', 'COMMA', 0, None],
+    ';': ['SEMICO'],
+    '(': ['L_BRACKET'],
+    ')': ['R_BRACKET'],
+    ',': ['COMMA'],
     #operator
-    '+': ['PLUS', 'PLUS', 0, None],
-    '-': ['MINUS', 'MINUS', 0, None],
-    '*': ['MUL', 'MUL', 0, None],
-    '/': ['DIV', 'DIV', 0, None],
-    '**': ['POWER', 'POWER', 0, None],
+    '+': ['PLUS'],
+    '-': ['MINUS'],
+    '*': ['MUL'],
+    '/': ['DIV'],
+    '**': ['POWER'],
     #none
-    'NONE': ['NONE', 'NONE', 0, None],
+    'NONE': ['NONE'],
     #error
-    'ERROR': ['ERROR', 'ERROR', 0, None],
+    'ERROR': ['ERROR'],
 }
 
 
@@ -62,8 +65,9 @@ class Scanner():
         file = open(file_name, mode='r')
         self.text = file.read()
         file.close()
-        self.re = re.compile(r'([a-zA-Z_][\w]*|[\d][\d]*[.[\d]*]?|\+|\*|//.*\n|--.*\n|-|/|\*\*|;|\(|\)|,)')
+        self.re = re.compile(r'([a-zA-Z_][\w]*|[\d][\d]*[.[\d]*]?|\+|\*|//.*|--.*|-|/|\*\*|;|\(|\)|,|\n)')
         self.elements = self.re.findall(self.text)
+        print(self.elements)
         self.token_list = None
 
     def _generate_token_list(self):
@@ -84,6 +88,7 @@ class Scanner():
                 self.token_list.append(Token(*TOKEN_TAB[i]))
             else:
                 self.token_list.append(Token(*TOKEN_TAB['ERROR']))
+        self.token_list.append(Token(*TOKEN_TAB['NONE']))
 
     def get_token_list(self):
         if not self.token_list:
