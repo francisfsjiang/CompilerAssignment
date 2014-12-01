@@ -11,6 +11,9 @@ class Token:
         self.value = value
         self.func = func
 
+    def format(self):
+        return [self.token_type, self.lexeme, self.value, self.func]
+
 
 TOKEN_TAB = {
     'PI': ['CONST_ID', 'PI', math.pi, None],
@@ -83,5 +86,6 @@ class Scanner():
                 self.token_list.append(Token(*TOKEN_TAB['ERROR']))
 
     def get_token_list(self):
-        self._generate_token_list()
+        if not self.token_list:
+            self._generate_token_list()
         return self.token_list
