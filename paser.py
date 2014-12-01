@@ -9,7 +9,7 @@ class Parser:
         self.token_list = self.scanner.get_token_list()
         self.token_pos = -1
         self.token = None
-        self.tree = []
+        self.node_list = []
 
     def start(self):
         self.fetch_token()
@@ -28,8 +28,9 @@ class Parser:
             raise CEError('Syntax Error.(fetch)')
         self.token = self.token_list[self.token_pos]
 
-    def make_node(self):
-        pass
+    def make_node(self, _type, _left, _right):
+        node = Node(len(self.node_list), _type, _left, _right)
+        self.node_list.append(node)
 
     def state(self):
         if self.token.type == 'ORIGIN':
@@ -69,7 +70,12 @@ class Parser:
         self.match_token('R_BRACKET')
 
     def node_expression(self):
-        pass
+        left = self.node_term()
+        while self.token.type == 'PLUS' or self.token.type == 'MINUS':
+            token_temp = self.token.type
+            self.match_token(token_temp)
+            right = self.node_term()
+            left = self.make_node(token_temp, left, right)
 
     def node_term(self):
         pass
@@ -83,4 +89,11 @@ class Parser:
     def node_atom(self):
         pass
 
+
 class Node:
+    def __init__(self, _pos, _type, _left, _right, _value):
+        self.pos = _pos
+        self.type = _type
+        self.left = _left
+        self.right = _right
+        self.value = _value
