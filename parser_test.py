@@ -2,4 +2,5 @@
 from parser import Parser
 
 if __name__ == '__main__':
-    paser =
+    paser = Parser('test_code.ce')
+    paser.start()

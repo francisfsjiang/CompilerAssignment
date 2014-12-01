@@ -28,7 +28,7 @@ class Parser:
             raise CEError('Syntax Error.(fetch)')
         self.token = self.token_list[self.token_pos]
 
-    def make_node(self, _type, _left, _right=None):
+    def make_node(self, _type, _left, _right=None, _value=None):
         pos = len(self.node_list)
         node = Node(pos, _type, _left, _right)
         self.node_list.append(node)
@@ -47,18 +47,21 @@ class Parser:
             raise CEError('Syntax error.(statement)')
 
     def state_origin(self):
-        self.match_token('ROT')
+        self.match_token('ORIGIN')
         self.match_token('IS')
         self.match_token('L_BRACKET')
         x_node = self.node_expression()
+        self.visual_node(x_node)
         self.match_token('COMMA')
         y_node = self.node_expression()
+        self.visual_node(y_node)
         self.match_token('R_BRACKET')
 
     def state_rot(self):
         self.match_token('ROT')
         self.match_token('IS')
         value_node = self.node_expression()
+        self.visual_node(value_node)
 
     def state_scale(self):
         self.match_token('SCALE')
@@ -66,7 +69,9 @@ class Parser:
         self.match_token('L_BRACKET')
         x_node = self.node_expression()
         self.match_token('COMMA')
+        self.visual_node(x_node)
         y_node = self.node_expression()
+        self.visual_node(y_node)
         self.match_token('R_BRACKET')
 
     def state_for(self):
@@ -74,15 +79,20 @@ class Parser:
         self.match_token('T')
         self.match_token('FROM')
         start_node = self.node_expression()
+        self.visual_node(start_node)
         self.match_token('TO')
         end_node = self.node_expression()
+        self.visual_node(end_node)
         self.match_token('STEP')
         stop_node = self.node_expression()
+        self.visual_node(stop_node)
         self.match_token('DRAW')
         self.match_token('L_BRACKET')
         x_node = self.node_expression()
+        self.visual_node(x_node)
         self.match_token('COMMA')
         y_node = self.node_expression()
+        self.visual_node(y_node)
         self.match_token('R_BRACKET')
 
     def node_expression(self):
@@ -104,7 +114,6 @@ class Parser:
         return left
 
     def node_factor(self):
-        left = self.node_atom()
         if self.token.type == 'PLUS' or self.token.type == 'MINUS':
             token_temp = self.token.type
             self.match_token(token_temp)
@@ -125,7 +134,9 @@ class Parser:
 
     def node_atom(self):
         if self.token.type == 'CONST_ID' or self.token.type == 'T':
-            return self.make_node(self.token.type, self.token.value)
+            self.match_token(self.token.type)
+
+            return self.make_node(self.token.type, _value=self.token.value)
         elif self.token.type == 'FUNC':
             self.match_token('FUNC')
             self.match_token('L_BRACKET')
@@ -138,6 +149,16 @@ class Parser:
         else:
             raise CEError('Syntax Error.(atom)')
         return tmp
+
+    def visual_node(self, pos, intent=0):
+        if not pos:
+            return
+        node = self.node_list[pos]
+        for i in range(intent):
+            print('    ', end='')
+        print('%5s %5s' % (node.type, node.value))
+        self.visual_node(node.left)
+        self.visual_node(node.right)
 
 
 class Node:

@@ -6,7 +6,7 @@ from error import *
 
 class Token:
     def __init__(self, token_type=None, lexeme=None, value=0., func=None):
-        self.token_type = token_type
+        self.type = token_type
         if lexeme:
             self.lexeme = lexeme
         else:
@@ -15,7 +15,7 @@ class Token:
         self.func = func
 
     def format(self):
-        return [self.token_type, self.lexeme, self.value, self.func]
+        return [self.type, self.lexeme, self.value, self.func]
 
 
 TOKEN_TAB = {
@@ -65,7 +65,7 @@ class Scanner:
         file = open(file_name, mode='r')
         self.text = file.read()
         file.close()
-        self.re = re.compile(r'([a-zA-Z_][\w]*|[\d][\d]*[.[\d]*]?|\+|\*|//.*|--.*|-|/|\*\*|;|\(|\)|,)')
+        self.re = re.compile(r'([a-zA-Z_][\w]*|[\d][\d]*[.[\d]*]?|\+|\*\*|//.*|--.*|-|/|\*|;|\(|\)|,)')
         self.elements = self.re.findall(self.text)
         print(self.elements)
         self.token_list = None
