@@ -58,16 +58,16 @@ TOKEN_TAB = {
 }
 
 
-class Scanner():
+class Scanner:
     """
     """
     def __init__(self, file_name=None):
         file = open(file_name, mode='r')
         self.text = file.read()
         file.close()
-        self.re = re.compile(r'([a-zA-Z_][\w]*|[\d][\d]*[.[\d]*]?|\+|\*|//.*|--.*|-|/|\*\*|;|\(|\)|,|\n)')
+        self.re = re.compile(r'([a-zA-Z_][\w]*|[\d][\d]*[.[\d]*]?|\+|\*|//.*|--.*|-|/|\*\*|;|\(|\)|,)')
         self.elements = self.re.findall(self.text)
-        print(self.elements)
+        # print(self.elements)
         self.token_list = None
 
     def _generate_token_list(self):

@@ -3,4 +3,4 @@
 
 class CEError(Exception):
     def __init_(self, msg):
-        self.args = (msg, '123')
+        self.args = msg
