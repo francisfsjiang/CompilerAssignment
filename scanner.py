@@ -1,7 +1,6 @@
 # encoding: utf-8
 import math
 import re
-from queue import deque
 from error import *
 
 
@@ -36,16 +35,16 @@ TOKEN_TAB = {
     'STEP': ['STEP', 'STEP', 0, None],
     'DRAW': ['DRAW', 'DRAW', 0, None],
     #symbol
-    'SEMICO': ['SEMICO', 'SEMICO', 0, None],
-    'L_BRACKET': ['L_BRACKET', 'L_BRACKET', 0, None],
-    'R_BRACKET': ['R_BRACKET', 'R_BRACKET', 0, None],
-    'COMMA': ['COMMA', 'COMMA', 0, None],
+    ';': ['SEMICO', 'SEMICO', 0, None],
+    '(': ['L_BRACKET', 'L_BRACKET', 0, None],
+    ')': ['R_BRACKET', 'R_BRACKET', 0, None],
+    ',': ['COMMA', 'COMMA', 0, None],
     #operator
-    'PLUS': ['PLUS', 'PLUS', 0, None],
-    'MINUS': ['MINUS', 'MINUS', 0, None],
-    'MUL': ['MUL', 'MUL', 0, None],
-    'DIV': ['DIV', 'DIV', 0, None],
-    'POWER': ['POWER', 'POWER', 0, None],
+    '+': ['PLUS', 'PLUS', 0, None],
+    '-': ['MINUS', 'MINUS', 0, None],
+    '*': ['MUL', 'MUL', 0, None],
+    '/': ['DIV', 'DIV', 0, None],
+    '**': ['POWER', 'POWER', 0, None],
     #none
     'NONE': ['NONE', 'NONE', 0, None],
     #error
@@ -59,6 +58,30 @@ class Scanner():
     def __init__(self, file_name=None):
         file = open(file_name, mode='r')
         self.text = file.read()
-        self.re = re.compile(r'([a-zA-Z][a-zA-Z]*|[\d][\d]*[.[\d]*]?|\+|-|\*|/|\*\*|;|\(|\)|,)')
         file.close()
+        self.re = re.compile(r'([a-zA-Z_][\w]*|[\d][\d]*[.[\d]*]?|\+|\*|//.*\n|--.*\n|-|/|\*\*|;|\(|\)|,)')
+        self.elements = self.re.findall(self.text)
+        self.token_list = None
 
+    def _generate_token_list(self):
+        self.token_list = []
+        for i in self.elements:
+            try:
+                x = float(i)
+                token = Token(*TOKEN_TAB['CONST_ID'])
+                token.value = x
+                self.token_list.append(token)
+                continue
+            except ValueError:
+                pass
+            if i.startswith('//') or i.startswith('--'):
+                continue
+            i = i.upper()
+            if i in TOKEN_TAB:
+                self.token_list.append(Token(*TOKEN_TAB[i]))
+            else:
+                self.token_list.append(Token(*TOKEN_TAB['ERROR']))
+
+    def get_token_list(self):
+        self._generate_token_list()
+        return self.token_list
