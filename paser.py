@@ -28,9 +28,11 @@ class Parser:
             raise CEError('Syntax Error.(fetch)')
         self.token = self.token_list[self.token_pos]
 
-    def make_node(self, _type, _left, _right):
-        node = Node(len(self.node_list), _type, _left, _right)
+    def make_node(self, _type, _left, _right=None):
+        pos = len(self.node_list)
+        node = Node(pos, _type, _left, _right)
         self.node_list.append(node)
+        return pos
 
     def state(self):
         if self.token.type == 'ORIGIN':
@@ -45,13 +47,27 @@ class Parser:
             raise CEError('Syntax error.(statement)')
 
     def state_origin(self):
-        pass
+        self.match_token('ROT')
+        self.match_token('IS')
+        self.match_token('L_BRACKET')
+        x_node = self.node_expression()
+        self.match_token('COMMA')
+        y_node = self.node_expression()
+        self.match_token('R_BRACKET')
 
     def state_rot(self):
-        pass
+        self.match_token('ROT')
+        self.match_token('IS')
+        value_node = self.node_expression()
 
     def state_scale(self):
-        pass
+        self.match_token('SCALE')
+        self.match_token('IS')
+        self.match_token('L_BRACKET')
+        x_node = self.node_expression()
+        self.match_token('COMMA')
+        y_node = self.node_expression()
+        self.match_token('R_BRACKET')
 
     def state_for(self):
         self.match_token('FOR')
@@ -76,22 +92,56 @@ class Parser:
             self.match_token(token_temp)
             right = self.node_term()
             left = self.make_node(token_temp, left, right)
+        return left
 
     def node_term(self):
-        pass
+        left = self.node_factor()
+        while self.token.type == 'MUL' or self.token.type == 'DIV':
+            token_temp = self.token.type
+            self.match_token(token_temp)
+            right = self.node_factor()
+            left = self.make_node(token_temp, left, right)
+        return left
 
     def node_factor(self):
-        pass
+        left = self.node_atom()
+        if self.token.type == 'PLUS' or self.token.type == 'MINUS':
+            token_temp = self.token.type
+            self.match_token(token_temp)
+            right = self.node_factor()
+            left = self.make_node('CONST_ID', 0)
+            right = self.make_node(token_temp, left, right)
+        else:
+            right = self.node_component()
+        return right
 
     def node_component(self):
-        pass
+        left = self.node_atom()
+        if self.token.type == 'POWER':
+            self.match_token('POWER')
+            right = self.node_component()
+            left = self.make_node('POWER', left, right)
+        return left
 
     def node_atom(self):
-        pass
+        if self.token.type == 'CONST_ID' or self.token.type == 'T':
+            return self.make_node(self.token.type, self.token.value)
+        elif self.token.type == 'FUNC':
+            self.match_token('FUNC')
+            self.match_token('L_BRACKET')
+            tmp = self.node_expression()
+            self.match_token('R_BRACKET')
+        elif self.token.type == 'L_BRACKET':
+            self.match_token('L_BRACKET')
+            tmp = self.node_expression()
+            self.match_token('R_BRACKET')
+        else:
+            raise CEError('Syntax Error.(atom)')
+        return tmp
 
 
 class Node:
-    def __init__(self, _pos, _type, _left, _right, _value):
+    def __init__(self, _pos, _type, _left, _right, _value=None):
         self.pos = _pos
         self.type = _type
         self.left = _left

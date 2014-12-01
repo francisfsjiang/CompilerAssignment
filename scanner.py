@@ -67,7 +67,7 @@ class Scanner:
         file.close()
         self.re = re.compile(r'([a-zA-Z_][\w]*|[\d][\d]*[.[\d]*]?|\+|\*|//.*|--.*|-|/|\*\*|;|\(|\)|,)')
         self.elements = self.re.findall(self.text)
-        # print(self.elements)
+        print(self.elements)
         self.token_list = None
 
     def _generate_token_list(self):
