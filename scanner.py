@@ -1,5 +1,6 @@
 # encoding: utf-8
 import math
+import re
 from queue import deque
 from error import *
 
@@ -17,13 +18,15 @@ TOKEN_TAB = {
     'E': ['CONST_ID', 'E', math.e, None],
     'CONST_ID': ['CONST_ID', 'CONST_ID', 0, None],
     'T': ['T', 'T', 0, None],
+    #func
     'SIN': ['FUNC', 'SIN', 0, math.sin],
     'COS': ['FUNC', 'COS', 0, math.cos],
     'TAN': ['FUNC', 'TAN', 0, math.tan],
     'LN': ['FUNC', 'LN', 0, math.log],
     'EXP': ['FUNC', 'EXP', 0, math.exp],
     'SQRT': ['FUNC', 'EXP', 0, math.sqrt],
-    'ORIGIN': ['ORIGIN', 'ORIGIN', 0, None],
+    #key word
+    'ORIGIN': ['ORIGIN', 'ORIGIN'],
     'SCALE': ['SCALE', 'SCALE', 0, None],
     'ROT': ['ROT', 'ROT', 0, None],
     'IS': ['IS', 'IS', 0, None],
