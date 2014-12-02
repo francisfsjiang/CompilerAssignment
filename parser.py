@@ -11,6 +11,15 @@ class Parser:
         self.token = None
         self.node_list = []
 
+        #global_value
+        self.global_origin = (0, 0)
+        self.global_scale = (0, 0)
+        self.global_rot = 0
+        self.global_t = 0
+
+        #point_list
+
+
     def start_paser(self):
         self.fetch_token()
         while self.token.token_type != 'NONE':
@@ -51,18 +60,26 @@ class Parser:
         self.match_token('IS')
         self.match_token('L_BRACKET')
         x_node = self.node_expression()
-
         self.eval_node(x_node)
         self.match_token('COMMA')
         y_node = self.node_expression()
         self.eval_node(y_node)
         self.match_token('R_BRACKET')
 
+        #eval
+        x_value = self.eval_node(x_node)
+        y_value = self.eval_node(y_node)
+        self.visual_node(x_node)
+        self.visual_node(y_node)
+
     def state_rot(self):
         self.match_token('ROT')
         self.match_token('IS')
         value_node = self.node_expression()
         self.eval_node(value_node)
+
+        value = self.eval_node(value_node)
+        self.visual_node(value)
 
     def state_scale(self):
         self.match_token('SCALE')
@@ -74,6 +91,12 @@ class Parser:
         y_node = self.node_expression()
         self.eval_node(y_node)
         self.match_token('R_BRACKET')
+
+        #eval
+        x_value = self.eval_node(x_node)
+        y_value = self.eval_node(y_node)
+        self.visual_node(x_node)
+        self.visual_node(y_node)
 
     def state_for(self):
         self.match_token('FOR')
@@ -95,6 +118,13 @@ class Parser:
         y_node = self.node_expression()
         self.eval_node(y_node)
         self.match_token('R_BRACKET')
+
+        #eval
+        start_value = self.eval_node(start_node)
+        end_value = self.eval_node(end_node)
+        step_value = self.eval_node(step_node)
+        for i in range(start_value, end_value, step_value):
+            self.global_t = i
 
     def node_expression(self):
         left = self.node_term()
@@ -131,7 +161,7 @@ class Parser:
             token = self.token
             self.match_token('POWER')
             right = self.node_component()
-            left = self.make_node('POWER', left, right, value=token.func)
+            left = self.make_node('POWER', left, right, func=token.func)
         return left
 
     def node_atom(self):
@@ -139,8 +169,9 @@ class Parser:
             tmp_type = self.token.token_type
             tmp_value = self.token.value
             self.match_token(self.token.token_type)
+            node = self.make_node(tmp_type, value=tmp_value)
+            return node
 
-            return self.make_node(tmp_type, value=tmp_value)
         elif self.token.token_type == 'FUNC':
             tmp_token = self.token
             self.match_token('FUNC')
@@ -162,7 +193,7 @@ class Parser:
         node = self.node_list[pos]
         for i in range(intent):
             print('    ', end='')
-        print('%s %5s %10s' % (node.type, node.value, node.func))
+        print('%s %5s %10s' % (node.token_type, node.value, node.func))
         if not node.func or type(node.func) == type('str'):
             self.visual_node(node.left, intent + 1)
         self.visual_node(node.right, intent + 1)
@@ -171,6 +202,8 @@ class Parser:
         node = self.node_list[pos]
         if node.token_type == 'CONST_ID':
             return node.value
+        if node.token_type == 'T':
+            return self.global_t
         elif node.token_type == 'FUNC':
             right_value = self.eval_node(node.right)
             node.value = node.func(right_value)
@@ -178,15 +211,18 @@ class Parser:
         elif node.token_type in ['PLUS', 'MINUS', 'MUL', 'DIV', 'POWER']:
             left_value = self.eval_node(node.left)
             right_value = self.eval_node(node.right)
-            node.value = getattr(left_value, node.func)
+            node.value = getattr(left_value, node.func)(right_value)
             return node.value
 
 
 class Node:
     def __init__(self, pos, token_type, left=None, right=None, value=None, func=None):
         self.pos = pos
-        self.type = token_type
+        self.token_type = token_type
         self.left = left
         self.right = right
         self.value = value
         self.func = func
+
+    def __str__(self):
+        return self.token_type + ' ' + self.value + ' ' + self.func
