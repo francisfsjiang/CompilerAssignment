@@ -11,7 +11,7 @@ class Parser:
         self.token = None
         self.node_list = []
 
-    def start(self):
+    def start_paser(self):
         self.fetch_token()
         while self.token.token_type != 'NONE':
             self.state()
@@ -51,6 +51,7 @@ class Parser:
         self.match_token('IS')
         self.match_token('L_BRACKET')
         x_node = self.node_expression()
+
         self.eval_node(x_node)
         self.match_token('COMMA')
         y_node = self.node_expression()
@@ -163,11 +164,22 @@ class Parser:
             print('    ', end='')
         print('%s %5s %10s' % (node.type, node.value, node.func))
         if not node.func or type(node.func) == type('str'):
-            self.visual_node(node.left, intent+1)
-        self.visual_node(node.right, intent+1)
+            self.visual_node(node.left, intent + 1)
+        self.visual_node(node.right, intent + 1)
 
     def eval_node(self, pos):
-        self.visual_node(pos)
+        node = self.node_list[pos]
+        if node.token_type == 'CONST_ID':
+            return node.value
+        elif node.token_type == 'FUNC':
+            right_value = self.eval_node(node.right)
+            node.value = node.func(right_value)
+            return node.value
+        elif node.token_type in ['PLUS', 'MINUS', 'MUL', 'DIV', 'POWER']:
+            left_value = self.eval_node(node.left)
+            right_value = self.eval_node(node.right)
+            node.value = getattr(left_value, node.func)
+            return node.value
 
 
 class Node:
