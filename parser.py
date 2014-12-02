@@ -51,17 +51,17 @@ class Parser:
         self.match_token('IS')
         self.match_token('L_BRACKET')
         x_node = self.node_expression()
-        self.visual_node(x_node)
+        self.eval_node(x_node)
         self.match_token('COMMA')
         y_node = self.node_expression()
-        self.visual_node(y_node)
+        self.eval_node(y_node)
         self.match_token('R_BRACKET')
 
     def state_rot(self):
         self.match_token('ROT')
         self.match_token('IS')
         value_node = self.node_expression()
-        self.visual_node(value_node)
+        self.eval_node(value_node)
 
     def state_scale(self):
         self.match_token('SCALE')
@@ -69,9 +69,9 @@ class Parser:
         self.match_token('L_BRACKET')
         x_node = self.node_expression()
         self.match_token('COMMA')
-        self.visual_node(x_node)
+        self.eval_node(x_node)
         y_node = self.node_expression()
-        self.visual_node(y_node)
+        self.eval_node(y_node)
         self.match_token('R_BRACKET')
 
     def state_for(self):
@@ -79,20 +79,20 @@ class Parser:
         self.match_token('T')
         self.match_token('FROM')
         start_node = self.node_expression()
-        self.visual_node(start_node)
+        self.eval_node(start_node)
         self.match_token('TO')
         end_node = self.node_expression()
-        self.visual_node(end_node)
+        self.eval_node(end_node)
         self.match_token('STEP')
         step_node = self.node_expression()
-        self.visual_node(step_node)
+        self.eval_node(step_node)
         self.match_token('DRAW')
         self.match_token('L_BRACKET')
         x_node = self.node_expression()
-        self.visual_node(x_node)
+        self.eval_node(x_node)
         self.match_token('COMMA')
         y_node = self.node_expression()
-        self.visual_node(y_node)
+        self.eval_node(y_node)
         self.match_token('R_BRACKET')
 
     def node_expression(self):
@@ -156,7 +156,7 @@ class Parser:
         return node
 
     def visual_node(self, pos, intent=0):
-        if pos == None:
+        if pos is None:
             return
         node = self.node_list[pos]
         for i in range(intent):
@@ -165,6 +165,9 @@ class Parser:
         if not node.func or type(node.func) == type('str'):
             self.visual_node(node.left, intent+1)
         self.visual_node(node.right, intent+1)
+
+    def eval_node(self, pos):
+        self.visual_node(pos)
 
 
 class Node:
