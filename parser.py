@@ -13,12 +13,12 @@ class Parser:
 
     def start(self):
         self.fetch_token()
-        while self.token.type != 'NONE':
+        while self.token.token_type != 'NONE':
             self.state()
             self.match_token('SEMICO')
 
     def match_token(self, _type=None):
-        if self.token.type != _type:
+        if self.token.token_type != _type:
             raise CEError('Syntax Error.')
         self.fetch_token()
 
@@ -28,20 +28,20 @@ class Parser:
             raise CEError('Syntax Error.(fetch)')
         self.token = self.token_list[self.token_pos]
 
-    def make_node(self, _type, _left, _right=None, _value=None):
+    def make_node(self, token_type, left=None, right=None, value=None, func=None):
         pos = len(self.node_list)
-        node = Node(pos, _type, _left, _right)
+        node = Node(pos, token_type, left, right, value, func)
         self.node_list.append(node)
         return pos
 
     def state(self):
-        if self.token.type == 'ORIGIN':
+        if self.token.token_type == 'ORIGIN':
             self.state_origin()
-        elif self.token.type == 'ROT':
+        elif self.token.token_type == 'ROT':
             self.state_rot()
-        elif self.token.type == 'SCALE':
+        elif self.token.token_type == 'SCALE':
             self.state_scale()
-        elif self.token.type == 'FOR':
+        elif self.token.token_type == 'FOR':
             self.state_for()
         else:
             raise CEError('Syntax error.(statement)')
@@ -84,8 +84,8 @@ class Parser:
         end_node = self.node_expression()
         self.visual_node(end_node)
         self.match_token('STEP')
-        stop_node = self.node_expression()
-        self.visual_node(stop_node)
+        step_node = self.node_expression()
+        self.visual_node(step_node)
         self.match_token('DRAW')
         self.match_token('L_BRACKET')
         x_node = self.node_expression()
@@ -97,74 +97,81 @@ class Parser:
 
     def node_expression(self):
         left = self.node_term()
-        while self.token.type == 'PLUS' or self.token.type == 'MINUS':
-            token_temp = self.token.type
-            self.match_token(token_temp)
+        while self.token.token_type == 'PLUS' or self.token.token_type == 'MINUS':
+            token = self.token
+            self.match_token(token.token_type)
             right = self.node_term()
-            left = self.make_node(token_temp, left, right)
+            left = self.make_node(token.token_type, left, right, func=token.func)
         return left
 
     def node_term(self):
         left = self.node_factor()
-        while self.token.type == 'MUL' or self.token.type == 'DIV':
-            token_temp = self.token.type
-            self.match_token(token_temp)
+        while self.token.token_type == 'MUL' or self.token.token_type == 'DIV':
+            token = self.token
+            self.match_token(token.token_type)
             right = self.node_factor()
-            left = self.make_node(token_temp, left, right)
+            left = self.make_node(token.token_type, left, right, func=token.func)
         return left
 
     def node_factor(self):
-        if self.token.type == 'PLUS' or self.token.type == 'MINUS':
-            token_temp = self.token.type
-            self.match_token(token_temp)
+        if self.token.token_type == 'PLUS' or self.token.token_type == 'MINUS':
+            token = self.token
+            self.match_token(token.token_type)
             right = self.node_factor()
-            left = self.make_node('CONST_ID', 0)
-            right = self.make_node(token_temp, left, right)
+            left = self.make_node('CONST_ID', value=0)
+            right = self.make_node(token.token_type, left, right, func=token.func)
         else:
             right = self.node_component()
         return right
 
     def node_component(self):
         left = self.node_atom()
-        if self.token.type == 'POWER':
+        if self.token.token_type == 'POWER':
+            token = self.token
             self.match_token('POWER')
             right = self.node_component()
-            left = self.make_node('POWER', left, right)
+            left = self.make_node('POWER', left, right, value=token.func)
         return left
 
     def node_atom(self):
-        if self.token.type == 'CONST_ID' or self.token.type == 'T':
-            self.match_token(self.token.type)
+        if self.token.token_type == 'CONST_ID' or self.token.token_type == 'T':
+            tmp_type = self.token.token_type
+            tmp_value = self.token.value
+            self.match_token(self.token.token_type)
 
-            return self.make_node(self.token.type, _value=self.token.value)
-        elif self.token.type == 'FUNC':
+            return self.make_node(tmp_type, value=tmp_value)
+        elif self.token.token_type == 'FUNC':
+            tmp_token = self.token
             self.match_token('FUNC')
             self.match_token('L_BRACKET')
-            tmp = self.node_expression()
+            inner_node = self.node_expression()
             self.match_token('R_BRACKET')
-        elif self.token.type == 'L_BRACKET':
+            node = self.make_node('FUNC', func=tmp_token.func, right=inner_node)
+        elif self.token.token_type == 'L_BRACKET':
             self.match_token('L_BRACKET')
-            tmp = self.node_expression()
+            node = self.node_expression()
             self.match_token('R_BRACKET')
         else:
             raise CEError('Syntax Error.(atom)')
-        return tmp
+        return node
 
     def visual_node(self, pos, intent=0):
-        if not pos:
+        if pos == None:
             return
         node = self.node_list[pos]
         for i in range(intent):
             print('    ', end='')
-        print('%5s %5s' % (node.type, node.value))
-        self.visual_node(node.left)
-        self.visual_node(node.right)
+        print('%s %5s %10s' % (node.type, node.value, node.func))
+        if not node.func or type(node.func) == type('str'):
+            self.visual_node(node.left, intent+1)
+        self.visual_node(node.right, intent+1)
 
 
 class Node:
-    def __init__(self, _pos, _type, _left, _right, _value=None):
-        self.pos = _pos
-        self.type = _type
-        self.left = _left
-        self.right = _right
-        self.value = _value
+    def __init__(self, pos, token_type, left=None, right=None, value=None, func=None):
+        self.pos = pos
+        self.type = token_type
+        self.left = left
+        self.right = right
+        self.value = value
+        self.func = func

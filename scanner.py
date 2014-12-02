@@ -6,7 +6,7 @@ from error import *
 
 class Token:
     def __init__(self, token_type=None, lexeme=None, value=0., func=None):
-        self.type = token_type
+        self.token_type = token_type
         if lexeme:
             self.lexeme = lexeme
         else:
@@ -14,8 +14,11 @@ class Token:
         self.value = value
         self.func = func
 
+    def __str__(self):
+        return '%10s %10s %10.4f %20s' % (self.token_type, self.lexeme, self.value, self.func)
+
     def format(self):
-        return [self.type, self.lexeme, self.value, self.func]
+        return [self.token_type, self.lexeme, self.value, self.func]
 
 
 TOKEN_TAB = {
@@ -46,11 +49,11 @@ TOKEN_TAB = {
     ')': ['R_BRACKET'],
     ',': ['COMMA'],
     #operator
-    '+': ['PLUS'],
-    '-': ['MINUS'],
-    '*': ['MUL'],
-    '/': ['DIV'],
-    '**': ['POWER'],
+    '+': ['PLUS', 'PLUS', 0, '__add__'],
+    '-': ['MINUS', 'MINUS', 0, '__sub__'],
+    '*': ['MUL', 'MUL', 0, '__mul__'],
+    '/': ['DIV', 'DIV', 0, '__truediv__'],
+    '**': ['POWER', 'POWER', 0, '__pow__'],
     #none
     'NONE': ['NONE'],
     #error
