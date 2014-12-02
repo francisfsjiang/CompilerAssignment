@@ -16,3 +16,7 @@ class Painter:
                                 right_bottom[0],
                                 right_bottom[1],
                                 fill='#000000')
+
+    def paint_point_list(self, l: list):
+        for i in l:
+            self.add_point(i[0], i[1], 0.1)

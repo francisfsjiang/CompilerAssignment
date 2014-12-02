@@ -1,5 +1,6 @@
 # encoding: utf-8
 from scanner import Scanner
+from math import cos, sin
 from error import *
 
 
@@ -13,12 +14,12 @@ class Parser:
 
         #global_value
         self.global_origin = (0, 0)
-        self.global_scale = (0, 0)
+        self.global_scale = (1, 1)
         self.global_rot = 0
         self.global_t = 0
 
         #point_list
-
+        self.point_list = []
 
     def start_paser(self):
         self.fetch_token()
@@ -71,6 +72,7 @@ class Parser:
         y_value = self.eval_node(y_node)
         self.visual_node(x_node)
         self.visual_node(y_node)
+        self.global_origin = (x_value, y_value)
 
     def state_rot(self):
         self.match_token('ROT')
@@ -79,7 +81,8 @@ class Parser:
         self.eval_node(value_node)
 
         value = self.eval_node(value_node)
-        self.visual_node(value)
+        self.visual_node(value_node)
+        self.global_rot = value
 
     def state_scale(self):
         self.match_token('SCALE')
@@ -97,6 +100,7 @@ class Parser:
         y_value = self.eval_node(y_node)
         self.visual_node(x_node)
         self.visual_node(y_node)
+        self.global_scale = (x_value, y_value)
 
     def state_for(self):
         self.match_token('FOR')
@@ -113,18 +117,23 @@ class Parser:
         self.match_token('DRAW')
         self.match_token('L_BRACKET')
         x_node = self.node_expression()
-        self.eval_node(x_node)
         self.match_token('COMMA')
         y_node = self.node_expression()
-        self.eval_node(y_node)
         self.match_token('R_BRACKET')
 
         #eval
         start_value = self.eval_node(start_node)
         end_value = self.eval_node(end_node)
         step_value = self.eval_node(step_node)
-        for i in range(start_value, end_value, step_value):
+        i = start_value
+        while True:
             self.global_t = i
+            x_value = self.eval_node(x_node)
+            y_value = self.eval_node(y_node)
+            self.add_point(x_value, y_value)
+            i += step_value
+            if i > end_value:
+                break
 
     def node_expression(self):
         left = self.node_term()
@@ -211,8 +220,18 @@ class Parser:
         elif node.token_type in ['PLUS', 'MINUS', 'MUL', 'DIV', 'POWER']:
             left_value = self.eval_node(node.left)
             right_value = self.eval_node(node.right)
-            node.value = getattr(left_value, node.func)(right_value)
+            node.value = getattr(float(left_value), node.func)(right_value)
             return node.value
+
+    def add_point(self, x, y):
+        local_x, local_y = x, y
+        local_x, local_y = local_x*self.global_scale[0], local_y*self.global_scale[1]
+        temp_x = local_x*cos(self.global_rot) + local_y*sin(self.global_rot)
+        temp_y = local_x*sin(self.global_rot) + local_y*cos(self.global_rot)
+        local_x, local_y = temp_x, temp_y
+        local_x += self.global_origin[0]
+        local_y += self.global_origin[1]
+        self.point_list.append((local_x, local_y))
 
 
 class Node:
@@ -225,4 +244,5 @@ class Node:
         self.func = func
 
     def __str__(self):
-        return self.token_type + ' ' + self.value + ' ' + self.func
+        return str(self.pos) + ' ' + str(self.left) + ' ' + str(self.right) + ' ' + \
+               self.token_type + ' ' + str(self.value) + ' ' + str(self.func)
