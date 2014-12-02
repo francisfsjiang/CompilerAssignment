@@ -8,4 +8,4 @@ def run():
     parser = Parser('test_code.ce')
     parser.start_paser()
     paint.paint_point_list(parser.point_list)
-    print(parser.point_list)
+    # print(parser.point_list)

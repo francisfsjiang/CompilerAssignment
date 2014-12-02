@@ -8,4 +8,4 @@ if __name__ == '__main__':
     for i in paser.node_list:
         print(i)
 
-    print(paser.point_list)
+    # print(paser.point_list)
