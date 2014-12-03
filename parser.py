@@ -21,6 +21,9 @@ class Parser:
         #point_list
         self.point_list = []
 
+        #root nodes
+        self.root_nodes = []
+
     def start_paser(self):
         self.fetch_token()
         while self.token.token_type != 'NONE':
@@ -29,13 +32,13 @@ class Parser:
 
     def match_token(self, _type=None):
         if self.token.token_type != _type:
-            raise CEError('Syntax Error.')
+            raise CEError('@%d: Syntax error.(Except %s here)' % (self.token.line_no, _type))
         self.fetch_token()
 
     def fetch_token(self):
         self.token_pos += 1
         if self.token_pos >= len(self.token_list):
-            raise CEError('Syntax Error.(fetch)')
+            raise CEError('@%d: Syntax error.(Statement uncompleted)' % self.token.line_no)
         self.token = self.token_list[self.token_pos]
 
     def make_node(self, token_type, left=None, right=None, value=None, func=None):
@@ -54,34 +57,34 @@ class Parser:
         elif self.token.token_type == 'FOR':
             self.state_for()
         else:
-            raise CEError('Syntax error.(statement)')
+            raise CEError('@%d: Syntax error.(Statement Not Found)' % self.token.line_no)
 
     def state_origin(self):
         self.match_token('ORIGIN')
         self.match_token('IS')
         self.match_token('L_BRACKET')
         x_node = self.node_expression()
+        self.root_nodes.append(x_node)
         self.eval_node(x_node)
         self.match_token('COMMA')
         y_node = self.node_expression()
+        self.root_nodes.append(y_node)
         self.eval_node(y_node)
         self.match_token('R_BRACKET')
 
         #eval
         x_value = self.eval_node(x_node)
         y_value = self.eval_node(y_node)
-        self.visual_node(x_node)
-        self.visual_node(y_node)
         self.global_origin = (x_value, y_value)
 
     def state_rot(self):
         self.match_token('ROT')
         self.match_token('IS')
         value_node = self.node_expression()
+        self.root_nodes.append(value_node)
         self.eval_node(value_node)
 
         value = self.eval_node(value_node)
-        self.visual_node(value_node)
         self.global_rot = value
 
     def state_scale(self):
@@ -89,17 +92,17 @@ class Parser:
         self.match_token('IS')
         self.match_token('L_BRACKET')
         x_node = self.node_expression()
+        self.root_nodes.append(x_node)
         self.match_token('COMMA')
         self.eval_node(x_node)
         y_node = self.node_expression()
+        self.root_nodes.append(y_node)
         self.eval_node(y_node)
         self.match_token('R_BRACKET')
 
         #eval
         x_value = self.eval_node(x_node)
         y_value = self.eval_node(y_node)
-        self.visual_node(x_node)
-        self.visual_node(y_node)
         self.global_scale = (x_value, y_value)
 
     def state_for(self):
@@ -107,40 +110,46 @@ class Parser:
         self.match_token('T')
         self.match_token('FROM')
         start_node = self.node_expression()
+        self.root_nodes.append(start_node)
         self.eval_node(start_node)
         self.match_token('TO')
         end_node = self.node_expression()
+        self.root_nodes.append(end_node)
         self.eval_node(end_node)
         self.match_token('STEP')
         step_node = self.node_expression()
+        self.root_nodes.append(step_node)
         self.eval_node(step_node)
         self.match_token('DRAW')
         self.match_token('L_BRACKET')
         x_node = self.node_expression()
+        self.root_nodes.append(x_node)
         self.match_token('COMMA')
         y_node = self.node_expression()
+        self.node_list.append(y_node)
         self.match_token('R_BRACKET')
+
+        color_flag = False
         if self.token.token_type == 'COLOR':
+            color_flag = True
             self.match_token('COLOR')
             self.match_token('L_BRACKET')
             color_r_node = self.node_expression()
-            color_r_value = self.eval_node(color_r_node)
+            self.root_nodes.append(color_r_node)
             self.match_token('COMMA')
             color_g_node = self.node_expression()
-            color_g_value = self.eval_node(color_g_node)
+            self.root_nodes.append(color_g_node)
             self.match_token('COMMA')
             color_b_node = self.node_expression()
-            color_b_value = self.eval_node(color_b_node)
+            self.root_nodes.append(color_b_node)
             self.match_token('R_BRACKET')
-            color_value = (color_r_value, color_g_value, color_b_value)
-        else:
-            color_value = (0xFF, 0xFF, 0xFF)
+
+        radius_flag = False
         if self.token.token_type == 'RADIUS':
+            radius_flag = True
             self.match_token('RADIUS')
             radius_node = self.node_expression()
-            radius_value = self.eval_node(radius_node)
-        else:
-            radius_value = 1
+            self.root_nodes.append(radius_node)
 
         #eval
         start_value = self.eval_node(start_node)
@@ -151,6 +160,20 @@ class Parser:
             self.global_t = i
             x_value = self.eval_node(x_node)
             y_value = self.eval_node(y_node)
+
+            if color_flag:
+                color_r_value = self.eval_node(color_r_node)
+                color_g_value = self.eval_node(color_g_node)
+                color_b_value = self.eval_node(color_b_node)
+                color_value = (int(color_r_value), int(color_g_value), int(color_b_value))
+            else:
+                color_value = (0x00, 0x00, 0x00)
+
+            if radius_flag:
+                radius_value = self.eval_node(radius_node)
+            else:
+                radius_value = 1
+
             self.add_point(x_value, y_value, color_value, radius_value)
             i += step_value
             if i > end_value:
@@ -214,8 +237,12 @@ class Parser:
             node = self.node_expression()
             self.match_token('R_BRACKET')
         else:
-            raise CEError('Syntax Error.(atom)')
+            raise CEError('@%d: Syntax error.(Unexpected symbol)' % self.token.line_no)
         return node
+
+    def visual_all_nodes(self):
+        for i in self.root_nodes:
+            self.visual_node(i)
 
     def visual_node(self, pos, intent=0):
         if pos is None:
@@ -233,6 +260,7 @@ class Parser:
         if node.token_type == 'CONST_ID':
             return node.value
         if node.token_type == 'T':
+            node.value = self.global_t
             return self.global_t
         elif node.token_type == 'FUNC':
             right_value = self.eval_node(node.right)
@@ -244,7 +272,7 @@ class Parser:
             node.value = getattr(float(left_value), node.func)(right_value)
             return node.value
 
-    def add_point(self, x, y):
+    def add_point(self, x, y, color_value, radius):
         local_x, local_y = x, y
         local_x, local_y = local_x*self.global_scale[0], local_y*self.global_scale[1]
         temp_x = local_x*cos(self.global_rot) + local_y*sin(self.global_rot)
@@ -252,7 +280,7 @@ class Parser:
         local_x, local_y = temp_x, temp_y
         local_x += self.global_origin[0]
         local_y += self.global_origin[1]
-        self.point_list.append((local_x, local_y))
+        self.point_list.append((local_x, local_y, color_value, radius))
 
 
 class Node:

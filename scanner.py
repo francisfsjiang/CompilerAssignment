@@ -4,6 +4,20 @@ import re
 from error import *
 
 
+def fib(n):
+    n = int(n)
+    if n == 0:
+        return 0
+    elif n == 1:
+        return 1
+    else:
+        a = 0
+        b = 1
+        for i in range(n-1):
+            a, b = b, a+b
+        return b
+
+
 class Token:
     def __init__(self, token_type=None, lexeme=None, value=0., func=None):
         self.token_type = token_type
@@ -13,9 +27,10 @@ class Token:
             self.lexeme = token_type
         self.value = value
         self.func = func
+        self.line_no = 0
 
     def __str__(self):
-        return '%10s %10s %10.4f %20s' % (self.token_type, self.lexeme, self.value, self.func)
+        return '%10s %10s %10.4f %20s \t %d' % (self.token_type, self.lexeme, self.value, self.func, self.line_no)
 
     def format(self):
         return [self.token_type, self.lexeme, self.value, self.func]
@@ -32,7 +47,8 @@ TOKEN_TAB = {
     'TAN': ['FUNC', 'TAN', 0, math.tan],
     'LN': ['FUNC', 'LN', 0, math.log],
     'EXP': ['FUNC', 'EXP', 0, math.exp],
-    'SQRT': ['FUNC', 'EXP', 0, math.sqrt],
+    'SQRT': ['FUNC', 'SQRT', 0, math.sqrt],
+    'FIB': ['FUNC', 'FIB', 0, fib],
     #key word
     'ORIGIN': ['ORIGIN'],
     'SCALE': ['SCALE'],
@@ -71,33 +87,44 @@ class Scanner:
         self.text = file.read()
         file.close()
         self.re = re.compile(
-            r'(//.*|--.*|[a-zA-Z_][\w]*|[\d][\d]*[.[\d]*]?|\+|\*\*|-|/|\*|;|\(|\)|,)'
+            r'(//.*|--.*|[a-zA-Z_][\w]*|[\d][\d]*[.[\d]*]?|\+|\*\*|-|/|\*|;|\(|\)|,|\n)'
         )
         self.elements = self.re.findall(self.text)
-        print(self.elements)
+        # print(self.elements)
         self.token_list = None
+        self.line_no = 1
 
     def _generate_token_list(self):
         self.token_list = []
         for i in self.elements:
             if i.startswith('//') or i.startswith('--'):
                 continue
+            if i == '\n':
+                self.line_no += 1
+                continue
             try:
                 x = float(i)
                 token = Token(*TOKEN_TAB['CONST_ID'])
                 token.value = x
+                token.line_no = self.line_no
                 self.token_list.append(token)
                 continue
             except ValueError:
                 pass
             i = i.upper()
             if i in TOKEN_TAB:
-                self.token_list.append(Token(*TOKEN_TAB[i]))
+                token = Token(*TOKEN_TAB[i])
             else:
-                self.token_list.append(Token(*TOKEN_TAB['ERROR']))
-        self.token_list.append(Token(*TOKEN_TAB['NONE']))
+                token = Token(*TOKEN_TAB['ERROR'])
+            token.line_no = self.line_no
+            self.token_list.append(token)
+        token = Token(*TOKEN_TAB['NONE'])
+        token.line_no = self.line_no
+        self.token_list.append(token)
 
     def get_token_list(self):
         if not self.token_list:
             self._generate_token_list()
         return self.token_list
+
+
