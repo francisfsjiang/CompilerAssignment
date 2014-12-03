@@ -1,3 +1,4 @@
+#!/usr/local/bin/python3
 # encoding: utf-8
 from parser import Parser
 from gui import Painter
