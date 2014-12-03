@@ -43,6 +43,8 @@ TOKEN_TAB = {
     'TO': ['TO'],
     'STEP': ['STEP'],
     'DRAW': ['DRAW'],
+    'COLOR': ['COLOR'],
+    'RADIUS': ['RADIUS'],
     #symbol
     ';': ['SEMICO'],
     '(': ['L_BRACKET'],
@@ -68,7 +70,9 @@ class Scanner:
         file = open(file_name, mode='r')
         self.text = file.read()
         file.close()
-        self.re = re.compile(r'([a-zA-Z_][\w]*|[\d][\d]*[.[\d]*]?|\+|\*\*|//.*|--.*|-|/|\*|;|\(|\)|,)')
+        self.re = re.compile(
+            r'(//.*|--.*|[a-zA-Z_][\w]*|[\d][\d]*[.[\d]*]?|\+|\*\*|-|/|\*|;|\(|\)|,)'
+        )
         self.elements = self.re.findall(self.text)
         print(self.elements)
         self.token_list = None
@@ -76,6 +80,8 @@ class Scanner:
     def _generate_token_list(self):
         self.token_list = []
         for i in self.elements:
+            if i.startswith('//') or i.startswith('--'):
+                continue
             try:
                 x = float(i)
                 token = Token(*TOKEN_TAB['CONST_ID'])
@@ -84,8 +90,6 @@ class Scanner:
                 continue
             except ValueError:
                 pass
-            if i.startswith('//') or i.startswith('--'):
-                continue
             i = i.upper()
             if i in TOKEN_TAB:
                 self.token_list.append(Token(*TOKEN_TAB[i]))

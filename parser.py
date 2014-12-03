@@ -120,6 +120,27 @@ class Parser:
         self.match_token('COMMA')
         y_node = self.node_expression()
         self.match_token('R_BRACKET')
+        if self.token.token_type == 'COLOR':
+            self.match_token('COLOR')
+            self.match_token('L_BRACKET')
+            color_r_node = self.node_expression()
+            color_r_value = self.eval_node(color_r_node)
+            self.match_token('COMMA')
+            color_g_node = self.node_expression()
+            color_g_value = self.eval_node(color_g_node)
+            self.match_token('COMMA')
+            color_b_node = self.node_expression()
+            color_b_value = self.eval_node(color_b_node)
+            self.match_token('R_BRACKET')
+            color_value = (color_r_value, color_g_value, color_b_value)
+        else:
+            color_value = (0xFF, 0xFF, 0xFF)
+        if self.token.token_type == 'RADIUS':
+            self.match_token('RADIUS')
+            radius_node = self.node_expression()
+            radius_value = self.eval_node(radius_node)
+        else:
+            radius_value = 1
 
         #eval
         start_value = self.eval_node(start_node)
@@ -130,7 +151,7 @@ class Parser:
             self.global_t = i
             x_value = self.eval_node(x_node)
             y_value = self.eval_node(y_node)
-            self.add_point(x_value, y_value)
+            self.add_point(x_value, y_value, color_value, radius_value)
             i += step_value
             if i > end_value:
                 break
