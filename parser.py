@@ -32,7 +32,11 @@ class Parser:
 
     def match_token(self, _type=None):
         if self.token.token_type != _type:
-            raise CEError('@%d: Syntax error.(Except %s here)' % (self.token.line_no, _type))
+            if _type == 'SEMICO':
+                line_no = self.token_list[self.token_pos-1].line_no
+            else:
+                line_no = self.token.line_no
+            raise CEError('@%d: Syntax error.(Except %s here)' % (line_no, _type))
         self.fetch_token()
 
     def fetch_token(self):
