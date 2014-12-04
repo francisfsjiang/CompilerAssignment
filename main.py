@@ -5,7 +5,7 @@ import os
 
 from parser import Parser
 from gui import Painter
-from error import CEError
+from error import IEError
 
 
 if __name__ == '__main__':
@@ -21,7 +21,7 @@ if __name__ == '__main__':
         parser = Parser(sys.argv[1])
         parser.start_paser()
         paint.paint_point_list(parser.point_list)
-    except CEError as e:
+    except IEError as e:
         print(e)
         exit(0)
     except Exception as e:

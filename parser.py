@@ -36,13 +36,13 @@ class Parser:
                 line_no = self.token_list[self.token_pos-1].line_no
             else:
                 line_no = self.token.line_no
-            raise CEError('@%d: Syntax error.(Except %s here)' % (line_no, _type))
+            raise IEError('@%d: Syntax error.(Except %s here)' % (line_no, _type))
         self.fetch_token()
 
     def fetch_token(self):
         self.token_pos += 1
         if self.token_pos >= len(self.token_list):
-            raise CEError('@%d: Syntax error.(Statement uncompleted)' % self.token.line_no)
+            raise IEError('@%d: Syntax error.(Statement uncompleted)' % self.token.line_no)
         self.token = self.token_list[self.token_pos]
 
     def make_node(self, token_type, left=None, right=None, value=None, func=None):
@@ -61,7 +61,7 @@ class Parser:
         elif self.token.token_type == 'FOR':
             self.state_for()
         else:
-            raise CEError('@%d: Syntax error.(Statement Not Found)' % self.token.line_no)
+            raise IEError('@%d: Syntax error.(Statement Not Found)' % self.token.line_no)
 
     def state_origin(self):
         self.match_token('ORIGIN')
@@ -241,7 +241,7 @@ class Parser:
             node = self.node_expression()
             self.match_token('R_BRACKET')
         else:
-            raise CEError('@%d: Syntax error.(Unexpected symbol)' % self.token.line_no)
+            raise IEError('@%d: Syntax error.(Unexpected symbol)' % self.token.line_no)
         return node
 
     def visual_all_nodes(self):
