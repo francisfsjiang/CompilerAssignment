@@ -21,10 +21,10 @@ if __name__ == '__main__':
         parser = Parser(sys.argv[1])
         parser.start_paser()
         paint.paint_point_list(parser.point_list)
+        paint.root.mainloop()
     except IEError as e:
         print(e)
         exit(0)
     except Exception as e:
         print('Runtime error. %s' % e)
         exit(0)
-    paint.root.mainloop()
