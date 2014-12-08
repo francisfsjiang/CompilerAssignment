@@ -36,8 +36,8 @@ SCALE IS (1,1);
 //fermat spiral
 ORIGIN IS (500,700);
 SCALE IS (33,33);
-FOR T FROM 0 TO 10*PI STEP 0.01 DRAW (sqrt(t)*cos(t),sqrt(t)*sin(t)) COLOR (127*cos(T)+128,127*sin(T)+128,127*cos(T)*128) radius 1;
-FOR T FROM 0 TO 10*PI STEP 0.01 DRAW (-sqrt(t)*cos(t),-sqrt(t)*sin(t)) COLOR (127*sin(T)+128,127*cos(T)+128,127*sin(T)*128) radius 1;
+FOR T FROM 0 TO 10*PI STEP 0.01 DRAW (sqrt(t)*cos(t),sqrt(t)*sin(t)) COLOR (127*cos(T)+128,127*sin(T)+128,127*cos(T)+128) radius 1;
+FOR T FROM 0 TO 10*PI STEP 0.01 DRAW (-sqrt(t)*cos(t),-sqrt(t)*sin(t)) COLOR (127*sin(T)+128,127*cos(T)+128,127*sin(T)+128) radius 1;
 SCALE IS (1,1);
 
 
