@@ -13,10 +13,10 @@ FOR T FROM 0 TO 100 STEP 1 DRAW (T*10,10*sin(T)) COLOR (127*sin(T)+128,127*cos(T
 
 //zhui
 ORIGIN   IS (0,250);
-FOR T FROM 0 TO 500 STEP 10 DRAW (T,0) RADIUS T/10;
+FOR T FROM 0 TO 600 STEP 10 DRAW (T,0) RADIUS T/10; //dwdwdwd
 
 //bigger circle
-ORIGIN IS (800,250);
+ORIGIN IS (900,600);
 FOR T FROM 0 TO 2*PI STEP 0.1 DRAW (50*cos(T),50*sin(T)) COLOR (127*sin(T)+128,0,0) RADIUS T;
 
 //y=x**3
@@ -43,4 +43,4 @@ SCALE IS (1,1);
 
 //fibonacci
 ORIGIN IS (50,400);
-FOR T FROM 1 TO 600 STEP 0.2 DRAW (T*100,0) radius ln(fib(T*5));
+FOR T FROM 1 TO 100 STEP T/20 DRAW (T*100,0) radius ln(fib(T*5));

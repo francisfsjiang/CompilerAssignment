@@ -115,15 +115,15 @@ class Parser:
         self.match_token('FROM')
         start_node = self.node_expression()
         self.root_nodes.append(start_node)
-        self.eval_node(start_node)
+        # self.eval_node(start_node)
         self.match_token('TO')
         end_node = self.node_expression()
         self.root_nodes.append(end_node)
-        self.eval_node(end_node)
+        # self.eval_node(end_node)
         self.match_token('STEP')
         step_node = self.node_expression()
         self.root_nodes.append(step_node)
-        self.eval_node(step_node)
+        # self.eval_node(step_node)
         self.match_token('DRAW')
         self.match_token('L_BRACKET')
         x_node = self.node_expression()
@@ -178,6 +178,7 @@ class Parser:
             else:
                 radius_value = 1
 
+            step_value = self.eval_node(step_node)
             self.add_point(x_value, y_value, color_value, radius_value)
             i += step_value
             if i > end_value:
@@ -297,5 +298,5 @@ class Node:
         self.func = func
 
     def __str__(self):
-        return str(self.pos) + ' ' + str(self.left) + ' ' + str(self.right) + ' ' + \
-               self.token_type + ' ' + str(self.value) + ' ' + str(self.func)
+        return str(self.pos) + ' ' + str(self.left) + ' ' + str(self.right) + ' ' +\
+            self.token_type + ' ' + str(self.value) + ' ' + str(self.func)
