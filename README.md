@@ -1,4 +1,4 @@
-#CompilerExercise
+#Compiler Assignment
 ===================
 
 This repo is the exercise program for XDU Compiler Course.
